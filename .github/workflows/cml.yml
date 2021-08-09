@@ -31,7 +31,12 @@ jobs: #Ejecuta una serie de trabajos
           # Your ML workflow goes here
           pip install -r requirements.txt
           python train.py
+          echo "## MODEL METRICS" > report.md
+          cat metrics.txt >> report.md
           
-          echo "## MODEL METRICS"
-          cat metrics.txt
+          echo "## DATA VIZUALIZATION" >> report.md
+          cml-publish feature_importance.png --md >> report.md
+          cml-publish residuals.png --md >> report.md
+          
+          cml-send-comment report.md
 
