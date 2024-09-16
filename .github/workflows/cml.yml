@@ -1,0 +1,42 @@
+name: model-wine-quality
+on: [push] #Esta operacion desencadena esta acción. Cuando se empuje a este repositorio...
+jobs: #Ejecuta una serie de trabajos
+  run:
+    runs-on: ubuntu-latest #Se ejecuta en una maquina virtual de ubuntu
+    # optionally use a convenient Ubuntu LTS + CUDA + DVC + CML image
+    
+    container: docker://iterativeai/cml:0-dvc2-base1-gpu #Librerias. Es un contenedor publico
+    # La importancia del contenedor es que va a tener las librerias que se necesitan para ejecutar nuestro
+    # codigo
+    
+    # container: docker://ghcr.io/iterative/cml:0-dvc2-base1-gpu
+    steps:
+      - uses: actions/checkout@v2 
+      #requisito de github actions. le dice a github las palabras recervadas. las variables de entorno. libreria requerida por Github actions.
+      # si se usa otra tecnologia 
+      
+      
+      # may need to setup NodeJS & Python3 on e.g. self-hosted
+      # - uses: actions/setup-node@v2 #acciones publicas
+      #   with:
+      #     node-version: '12'
+      # - uses: actions/setup-python@v2 #acciones publicas
+      #   with:
+      #     python-version: '3.x'
+      - uses: iterative/setup-cml@v1
+      - name: Train model
+        env:
+          REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }} #permiso para que cml ejecute tareas sobre el repositorio
+        run: |
+          # Your ML workflow goes here
+          pip install -r requirements.txt
+          python train.py
+          echo "## MODEL METRICS" > report.md
+          cat metrics.txt >> report.md
+          
+          echo "## DATA VIZUALIZATION" >> report.md
+          cml-publish feature_importance.png --md >> report.md
+          cml-publish residuals.png --md >> report.md
+          
+          cml-send-comment report.md
+
